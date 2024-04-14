@@ -10,7 +10,7 @@ Copyright (C) - All Rights Reserved
 struct Bounds
 {
     float3 center;
-    float3 extents;
+    float3 size;
 };
 
 struct Boid

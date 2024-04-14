@@ -10,6 +10,7 @@ Copyright (C) - All Rights Reserved
 using System;
 using Unicorn.Collections;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Unicorn
@@ -56,7 +57,7 @@ namespace Unicorn
             _sharedMesh = sharedMesh;
         }
 
-        public void Render(Slice<Matrix4x4> visibleMatrices)
+        public void Render<T>(Slice<T> visibleMatrices) where T : unmanaged
         {
             // 单次推送的上限就是1023个
             // https://docs.unity3d.com/ScriptReference/Graphics.RenderMeshInstanced.html
@@ -69,8 +70,8 @@ namespace Unicorn
                 Graphics.RenderMeshInstanced(_renderParams, _sharedMesh, 0, visibleMatrices.Items, size, i);
             }
         }
-        
-        public void Render(NativeArray<Matrix4x4> visibleMatrices)
+
+        public void Render<T>(NativeArray<T> visibleMatrices) where T : unmanaged
         {
             // 单次推送的上限就是1023个
             // https://docs.unity3d.com/ScriptReference/Graphics.RenderMeshInstanced.html

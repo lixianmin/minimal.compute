@@ -5,31 +5,33 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Unicorn;
-using Unicorn.Collections;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Jobs;
 using Random = UnityEngine.Random;
 
 public class SimpleFlocking : MonoBehaviour
 {
-    public struct Boid
+    [BurstCompile]
+    private struct Boid
     {
-        public Vector3 position;
-        public Vector3 direction;
-        public Bounds localBounds;
+        public readonly float3 position;
+        public readonly float3 direction;
+
+        public readonly float3 localBoundsCenter;
+        public readonly float3 localBoundsSize;
 
         public Boid(Vector3 position, Bounds localBounds)
         {
             this.position = position;
             direction = Vector3.forward;
-            this.localBounds = localBounds;
+
+            localBoundsCenter = localBounds.center;
+            localBoundsSize = localBounds.size;
         }
     }
 
@@ -42,17 +44,17 @@ public class SimpleFlocking : MonoBehaviour
         public bool Execute(int index)
         {
             var boid = boidList[index];
+            var direction = boid.direction;
 
-            var rotation = Quaternion.identity;
-            if (boid.direction != Vector3.zero)
+            var rotation = quaternion.identity;
+            if (direction.x != 0 || direction.y != 0 || direction.z != 0)
             {
-                rotation = Quaternion.LookRotation(boid.direction);
+                rotation = quaternion.LookRotation(direction, new float3(0, 1, 0));
             }
 
-            var matrix = Matrix4x4.TRS(boid.position, rotation, Vector3.one);
-            var worldBounds = new Bounds(matrix.MultiplyPoint(boid.localBounds.center), boid.localBounds.size);
-
-            var isVisible = FrustumTools.TestPlanesAABB(frustumPlanes, worldBounds);
+            var matrix = float4x4.TRS(boid.position, rotation, new float3(1, 1, 1));
+            var worldCenter = math.mul(matrix, new float4(boid.localBoundsCenter, 1)).xyz;
+            var isVisible = FrustumTools.TestPlanesAABB(frustumPlanes, worldCenter, boid.localBoundsSize * 0.5f);
             return isVisible;
         }
     }
@@ -70,13 +72,15 @@ public class SimpleFlocking : MonoBehaviour
             {
                 var index = visibleIndices[i];
                 var boid = boidList[index];
-                var rotation = Quaternion.identity;
-                if (boid.direction != Vector3.zero)
+                var direction = boid.direction;
+
+                var rotation = quaternion.identity;
+                if (direction.x != 0 || direction.y != 0 || direction.z != 0)
                 {
-                    rotation = Quaternion.LookRotation(boid.direction);
+                    rotation = quaternion.LookRotation(direction, new float3(0, 1, 0));
                 }
 
-                var matrix = Matrix4x4.TRS(boid.position, rotation, Vector3.one);
+                var matrix = float4x4.TRS(boid.position, rotation, new float3(1, 1, 1));
                 visibleMatrices.Add(matrix);
             }
         }
@@ -109,7 +113,7 @@ public class SimpleFlocking : MonoBehaviour
         _nativeVisibleIndices = _dog.Add(new NativeList<int>(Allocator.Persistent));
         _nativeVisibleMatrices = _dog.Add(new NativeList<Matrix4x4>(Allocator.Persistent));
     }
-    
+
     private void _InitBoids(MeshRenderer meshRenderer)
     {
         var prefabBounds = meshRenderer.localBounds;
@@ -141,7 +145,7 @@ public class SimpleFlocking : MonoBehaviour
         // 完成上一帧遗留的job, 比放到LateUpdate()中要快一些
         _jobHandle.Complete();
         _meshInstanced.Render(_nativeVisibleMatrices.AsArray());
-        
+
         // 进行本帧的任务
         var mainCamera = Camera.main;
         if (mainCamera == null)

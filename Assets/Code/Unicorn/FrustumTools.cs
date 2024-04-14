@@ -14,14 +14,13 @@ namespace Unicorn
 {
     public static class FrustumTools
     {
-        public static bool TestPlanesAABB(UnsafeReadonlyArray<Plane> frustumPlanes, Bounds bounds)
+        public static bool TestPlanesAABB(UnsafeReadonlyArray<Plane> frustumPlanes, float3 boundsCenter, float3 boundsExtents)
         {
-            var num = frustumPlanes.Length;
-            for (var i = 0; i < num; i++)
+            for (var i = 0; i < frustumPlanes.Length; i++)
             {
                 var plane = frustumPlanes[i];
                 var normalSign = math.sign(plane.normal);
-                var testPoint = (float3)bounds.center + bounds.extents * normalSign;
+                var testPoint = boundsCenter + boundsExtents * normalSign;
 
                 var dot = math.dot(testPoint, plane.normal);
                 if (dot + plane.distance < 0)
