@@ -13,7 +13,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unicorn
 {
-    public unsafe struct UnsafeReadonlyArray<T> where T : unmanaged
+    public unsafe struct UnsafeReadonlyArray<T> : IDisposable where T : unmanaged
     {
         public UnsafeReadonlyArray(T[] data)
         {

@@ -10,7 +10,6 @@ Copyright (C) - All Rights Reserved
 using System;
 using Unicorn.Collections;
 using Unity.Collections;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace Unicorn

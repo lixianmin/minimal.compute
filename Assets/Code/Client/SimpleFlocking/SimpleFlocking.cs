@@ -108,7 +108,7 @@ public class SimpleFlocking : MonoBehaviour
         _InitBoids(meshRenderer);
         _InitShader();
 
-        _unsafeFrustumPlanes = new UnsafeReadonlyArray<Plane>(_frustumPlane);
+        _unsafeFrustumPlanes = _dog.Add(new UnsafeReadonlyArray<Plane>(_frustumPlane));
         _nativeBoidList = _dog.Add(new NativeList<Boid>(Allocator.Persistent));
         _nativeVisibleIndices = _dog.Add(new NativeList<int>(Allocator.Persistent));
         _nativeVisibleMatrices = _dog.Add(new NativeList<Matrix4x4>(Allocator.Persistent));
@@ -183,7 +183,6 @@ public class SimpleFlocking : MonoBehaviour
     private void OnDisable()
     {
         _jobHandle.Complete();
-        _unsafeFrustumPlanes.Dispose();
         _dog.DisposeAnClear();
     }
 
