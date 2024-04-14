@@ -8,6 +8,7 @@ Copyright (C) - All Rights Reserved
 using System.Runtime.InteropServices;
 using Unicorn;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class SimpleFlocking : MonoBehaviour
 {
@@ -37,10 +38,9 @@ public class SimpleFlocking : MonoBehaviour
     private ComputeKernel _kernel;
     private RWStructuredBuffer<Boid> _boidsBuffer;
 
-    private Boid[] _boidsArray;
     private GameObject[] _boids;
 
-    private void Start()
+    private void Awake()
     {
         _kernel = new ComputeKernel(shader, "CSMain");
         _boidsBuffer = new RWStructuredBuffer<Boid>("boids_buffer", Marshal.SizeOf(typeof(Boid)));
@@ -52,21 +52,21 @@ public class SimpleFlocking : MonoBehaviour
     private void _InitBoids()
     {
         _boids = new GameObject[boidsCount];
-        _boidsArray = new Boid[boidsCount];
-
+        
+        var boidData = new Boid[boidsCount];
         for (var i = 0; i < boidsCount; i++)
         {
             var pos = transform.position + Random.insideUnitSphere * spawnRadius;
-            _boidsArray[i] = new Boid(pos);
+            boidData[i] = new Boid(pos);
             _boids[i] = Instantiate(boidPrefab, pos, Quaternion.identity);
-            _boidsArray[i].direction = _boids[i].transform.forward;
+            boidData[i].direction = _boids[i].transform.forward;
         }
+        
+        _kernel.SetBuffer(_boidsBuffer, boidData);
     }
 
     private void _InitShader()
     {
-        _kernel.SetBuffer(_boidsBuffer, _boidsArray);
-
         shader.SetFloat("rotationSpeed", rotationSpeed);
         shader.SetFloat("boidSpeed", boidSpeed);
         shader.SetFloat("boidSpeedVariation", boidSpeedVariation);
@@ -81,17 +81,21 @@ public class SimpleFlocking : MonoBehaviour
         shader.SetFloat("deltaTime", Time.deltaTime);
         _kernel.Dispatch(boidsCount);
 
-        _boidsArray = _boidsBuffer.GetDataAsync();
-
-        for (var i = 0; i < _boidsArray.Length; i++)
+        var boidData = _boidsBuffer.GetDataAsync();
+        for (var i = 0; i < boidData.Length; i++)
         {
-            _boids[i].transform.localPosition = _boidsArray[i].position;
+            _boids[i].transform.localPosition = boidData[i].position;
 
-            if (!_boidsArray[i].direction.Equals(Vector3.zero))
+            if (!boidData[i].direction.Equals(Vector3.zero))
             {
-                _boids[i].transform.rotation = Quaternion.LookRotation(_boidsArray[i].direction);
+                _boids[i].transform.rotation = Quaternion.LookRotation(boidData[i].direction);
             }
         }
+    }
+
+    private void LateUpdate()
+    {
+        
     }
 
     private void OnDestroy()
