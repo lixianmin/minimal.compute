@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using Unicorn;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
 using Random = UnityEngine.Random;
@@ -30,8 +31,7 @@ public class SimpleFlocking : MonoBehaviour
     [BurstCompile]
     private struct BoidTransformJob : IJobParallelForTransform
     {
-        [ReadOnly]
-        public NativeArray<Boid> boids;
+        [ReadOnly] public UnsafeReadonlyArray<Boid> boids;
 
         public void Execute(int index, TransformAccess transform)
         {
@@ -105,8 +105,8 @@ public class SimpleFlocking : MonoBehaviour
         _kernel.Dispatch(boidsCount);
 
         var boidData = _boidsBuffer.GetDataAsync();
-        var boids = new NativeArray<Boid>(boidData, Allocator.TempJob);
-        
+        var boids = new UnsafeReadonlyArray<Boid>(boidData);
+
         var job = new BoidTransformJob
         {
             boids = boids
@@ -115,16 +115,6 @@ public class SimpleFlocking : MonoBehaviour
         var handle = job.Schedule(_boidTransformAccess);
         handle.Complete();
         boids.Dispose();
-
-        // for (var i = 0; i < boidData.Length; i++)
-        // {
-        //     _boidTransforms[i].localPosition = boidData[i].position;
-        //
-        //     if (!boidData[i].direction.Equals(Vector3.zero))
-        //     {
-        //         _boidTransforms[i].rotation = Quaternion.LookRotation(boidData[i].direction);
-        //     }
-        // }
     }
 
     private void OnDestroy()
