@@ -39,11 +39,11 @@ public class SimpleFlocking : MonoBehaviour
     private struct TestVisibleJobFilter : IJobFilter
     {
         [ReadOnly] public UnsafeReadonlyArray<Plane> frustumPlanes;
-        [ReadOnly] public NativeList<Boid> boidList;
+        [ReadOnly] public UnsafeReadonlyArray<Boid> unsafeBoids;
 
         public bool Execute(int index)
         {
-            var boid = boidList[index];
+            var boid = unsafeBoids[index];
             var direction = boid.direction;
 
             var rotation = quaternion.identity;
@@ -62,7 +62,7 @@ public class SimpleFlocking : MonoBehaviour
     [BurstCompile]
     private struct CollectMatrixJob : IJob
     {
-        [ReadOnly] public NativeList<Boid> boidList;
+        [ReadOnly] public UnsafeReadonlyArray<Boid> unsafeBoids;
         [ReadOnly] public NativeList<int> visibleIndices;
         [WriteOnly] public NativeList<Matrix4x4> visibleMatrices;
 
@@ -71,7 +71,7 @@ public class SimpleFlocking : MonoBehaviour
             for (var i = 0; i < visibleIndices.Length; i++)
             {
                 var index = visibleIndices[i];
-                var boid = boidList[index];
+                var boid = unsafeBoids[index];
                 var direction = boid.direction;
 
                 var rotation = quaternion.identity;
@@ -109,7 +109,6 @@ public class SimpleFlocking : MonoBehaviour
         _InitShader();
 
         _unsafeFrustumPlanes = _dog.Add(new UnsafeReadonlyArray<Plane>(_frustumPlane));
-        _nativeBoidList = _dog.Add(new NativeList<Boid>(Allocator.Persistent));
         _nativeVisibleIndices = _dog.Add(new NativeList<int>(Allocator.Persistent));
         _nativeVisibleMatrices = _dog.Add(new NativeList<Matrix4x4>(Allocator.Persistent));
     }
@@ -160,21 +159,20 @@ public class SimpleFlocking : MonoBehaviour
         _kernel.Dispatch(boidsCount);
 
         var boidArray = _boidsBuffer.GetDataAsync();
-
-        _nativeBoidList.Clear();
-        _nativeBoidList.AddRange(boidArray);
-
+        _unsafeBoids.Dispose();
+        _unsafeBoids = new UnsafeReadonlyArray<Boid>(boidArray);
+        
         _nativeVisibleIndices.Clear();
         var testVisibleHandle = new TestVisibleJobFilter
         {
             frustumPlanes = _unsafeFrustumPlanes,
-            boidList = _nativeBoidList,
+            unsafeBoids = _unsafeBoids,
         }.ScheduleAppend(_nativeVisibleIndices, boidArray.Length);
 
         _nativeVisibleMatrices.Clear();
         _jobHandle = new CollectMatrixJob
         {
-            boidList = _nativeBoidList,
+            unsafeBoids = _unsafeBoids,
             visibleIndices = _nativeVisibleIndices,
             visibleMatrices = _nativeVisibleMatrices,
         }.Schedule(testVisibleHandle);
@@ -183,6 +181,7 @@ public class SimpleFlocking : MonoBehaviour
     private void OnDisable()
     {
         _jobHandle.Complete();
+        _unsafeBoids.Dispose();
         _dog.DisposeAndClear();
     }
 
@@ -195,7 +194,7 @@ public class SimpleFlocking : MonoBehaviour
 
     private readonly Plane[] _frustumPlane = new Plane[6];
     private UnsafeReadonlyArray<Plane> _unsafeFrustumPlanes;
-    private NativeList<Boid> _nativeBoidList;
+    private UnsafeReadonlyArray<Boid> _unsafeBoids;
     private NativeList<int> _nativeVisibleIndices;
     private NativeList<Matrix4x4> _nativeVisibleMatrices;
 }
