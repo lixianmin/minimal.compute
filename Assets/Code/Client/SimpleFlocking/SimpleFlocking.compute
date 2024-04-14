@@ -6,7 +6,7 @@ struct Boid
     float3 direction;
 };
 
-RWStructuredBuffer<Boid> boidsBuffer;
+RWStructuredBuffer<Boid> boids_buffer;
 
 float time;
 float deltaTime;
@@ -25,7 +25,7 @@ void CSMain(int3 id : SV_DispatchThreadID)
         return;
     }
     
-    Boid boid = boidsBuffer[id.x];
+    Boid boid = boids_buffer[id.x];
 
     float3 separation = 0;
     float3 alignment = 0;
@@ -37,7 +37,7 @@ void CSMain(int3 id : SV_DispatchThreadID)
     {
         if (i != int(id.x))
         {
-            const Boid temp_boid = boidsBuffer[i];
+            const Boid temp_boid = boids_buffer[i];
             const float3 offset = boid.position - temp_boid.position;
             const float dist = max(length(offset), 0.00001);
             if (dist < neighbourDistance)
@@ -61,5 +61,5 @@ void CSMain(int3 id : SV_DispatchThreadID)
     boid.direction = lerp(direction, normalize(boid.direction), prop);
     boid.position += boid.direction * boidSpeed * deltaTime;
 
-    boidsBuffer[id.x] = boid;
+    boids_buffer[id.x] = boid;
 }

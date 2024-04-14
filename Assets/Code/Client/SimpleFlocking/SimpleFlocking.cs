@@ -43,7 +43,7 @@ public class SimpleFlocking : MonoBehaviour
     private void Start()
     {
         _kernel = new ComputeKernel(shader, "CSMain");
-        _boidsBuffer = new RWStructuredBuffer<Boid>("boidsBuffer", Marshal.SizeOf(typeof(Boid)));
+        _boidsBuffer = new RWStructuredBuffer<Boid>("boids_buffer", Marshal.SizeOf(typeof(Boid)));
         
         _InitBoids();
         _InitShader();
@@ -81,7 +81,7 @@ public class SimpleFlocking : MonoBehaviour
         shader.SetFloat("deltaTime", Time.deltaTime);
         _kernel.Dispatch(boidsCount);
 
-        _boidsArray = _boidsBuffer.GetData();
+        _boidsArray = _boidsBuffer.GetDataAsync();
 
         for (var i = 0; i < _boidsArray.Length; i++)
         {
