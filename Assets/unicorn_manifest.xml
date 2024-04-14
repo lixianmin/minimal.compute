@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UnicornManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <editorSettings>
+    <colorSpace>Linear</colorSpace>
+    <bakeCollisionMeshes>true</bakeCollisionMeshes>
+    <enterPlayModeOptionsEnabled>false</enterPlayModeOptionsEnabled>
+  </editorSettings>
+  <relativePaths>
+    <editorResourceRoot />
+    <excelMetadataRoot />
+    <xmlMetadataRoot />
+    <exportMetadataRoot />
+  </relativePaths>
+  <managedStrippingLevels>
+    <Android>Low</Android>
+    <iOS>Low</iOS>
+    <WebGL>Low</WebGL>
+    <StandaloneOSX>Low</StandaloneOSX>
+  </managedStrippingLevels>
+  <makeAutoCode>false</makeAutoCode>
+</UnicornManifest>
