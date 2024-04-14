@@ -1,4 +1,11 @@
-﻿#pragma kernel CSMain
+﻿/********************************************************************
+created:    2024-04-14
+author:     lixianmin
+
+Copyright (C) - All Rights Reserved
+*********************************************************************/
+
+#pragma kernel CSMain
 
 struct Boid
 {

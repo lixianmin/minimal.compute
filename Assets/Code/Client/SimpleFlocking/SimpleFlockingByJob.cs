@@ -1,4 +1,4 @@
-﻿/********************************************************************
+/********************************************************************
 created:    2024-04-14
 author:     lixianmin
 
@@ -7,14 +7,13 @@ Copyright (C) - All Rights Reserved
 
 using System.Runtime.InteropServices;
 using Unicorn;
-using Unicorn.Collections;
 using Unity.Burst;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Jobs;
 using Random = UnityEngine.Random;
 
-public class SimpleFlocking : MonoBehaviour
+public class SimpleFlockingByJob : MonoBehaviour
 {
     public struct Boid
     {
@@ -62,16 +61,10 @@ public class SimpleFlocking : MonoBehaviour
     private Transform[] _boidTransforms;
     private TransformAccessArray _boidTransformAccess;
 
-    private InstanceRenderer _instanceRenderer;
-    private readonly Slice<Matrix4x4> _matrices = new();
-
     private void Awake()
     {
         _kernel = new ComputeKernel(shader, "CSMain");
         _boidsBuffer = new RWStructuredBuffer<Boid>("boids_buffer", Marshal.SizeOf(typeof(Boid)));
-
-        var meshRenderer = boidPrefab.GetComponent<MeshRenderer>();
-        _instanceRenderer = new InstanceRenderer(meshRenderer);
 
         _InitBoids();
         _InitShader();
@@ -111,21 +104,16 @@ public class SimpleFlocking : MonoBehaviour
         _kernel.Dispatch(boidsCount);
 
         var boidData = _boidsBuffer.GetDataAsync();
-        _matrices.Clear();
-        for (var i = 0; i < boidData.Length; i++)
+        var boids = new UnsafeReadonlyArray<Boid>(boidData);
+
+        var job = new BoidTransformJob
         {
-            var boid = boidData[i];
-            var rotation = Quaternion.identity;
-            if (boid.direction != Vector3.zero)
-            {
-                rotation = Quaternion.LookRotation(boid.direction);
-            }
+            boids = boids
+        };
 
-            var matrix = Matrix4x4.TRS(boid.position, rotation, Vector3.one);
-            _matrices.Add(matrix);
-        }
-
-        _instanceRenderer.RenderMeshInstanced(_matrices);
+        var handle = job.Schedule(_boidTransformAccess);
+        handle.Complete();
+        boids.Dispose();
     }
     
     private void OnDestroy()
