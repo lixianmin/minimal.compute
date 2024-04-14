@@ -93,6 +93,23 @@ public class SimpleFlocking : MonoBehaviour
     public float spawnRadius;
     public Transform target;
 
+    private void OnEnable()
+    {
+        _kernel = new ComputeKernel(shader, "CSMain");
+        _boidsBuffer = _dog.Add(new RWStructuredBuffer<Boid>("boids_buffer", Marshal.SizeOf(typeof(Boid))));
+
+        var meshRenderer = boidPrefab.GetComponent<MeshRenderer>();
+        _meshInstanced = MeshInstanced.Create(meshRenderer);
+
+        _InitBoids(meshRenderer);
+        _InitShader();
+
+        _unsafeFrustumPlanes = new UnsafeReadonlyArray<Plane>(_frustumPlane);
+        _nativeBoidList = _dog.Add(new NativeList<Boid>(Allocator.Persistent));
+        _nativeVisibleIndices = _dog.Add(new NativeList<int>(Allocator.Persistent));
+        _nativeVisibleMatrices = _dog.Add(new NativeList<Matrix4x4>(Allocator.Persistent));
+    }
+    
     private void _InitBoids(MeshRenderer meshRenderer)
     {
         var prefabBounds = meshRenderer.localBounds;
@@ -121,6 +138,11 @@ public class SimpleFlocking : MonoBehaviour
 
     private void Update()
     {
+        // 完成上一帧遗留的job, 比放到LateUpdate()中要快一些
+        _jobHandle.Complete();
+        _meshInstanced.Render(_nativeVisibleMatrices.AsArray());
+        
+        // 进行本帧的任务
         var mainCamera = Camera.main;
         if (mainCamera == null)
         {
@@ -146,36 +168,17 @@ public class SimpleFlocking : MonoBehaviour
         }.ScheduleAppend(_nativeVisibleIndices, boidArray.Length);
 
         _nativeVisibleMatrices.Clear();
-        var collectHandle = new CollectMatrixJob()
+        _jobHandle = new CollectMatrixJob
         {
             boidList = _nativeBoidList,
             visibleIndices = _nativeVisibleIndices,
             visibleMatrices = _nativeVisibleMatrices,
         }.Schedule(testVisibleHandle);
-        collectHandle.Complete();
-        
-        _meshInstanced.Render(_nativeVisibleMatrices.AsArray());
-    }
-
-    private void OnEnable()
-    {
-        _kernel = new ComputeKernel(shader, "CSMain");
-        _boidsBuffer = _dog.Add(new RWStructuredBuffer<Boid>("boids_buffer", Marshal.SizeOf(typeof(Boid))));
-
-        var meshRenderer = boidPrefab.GetComponent<MeshRenderer>();
-        _meshInstanced = MeshInstanced.Create(meshRenderer);
-
-        _InitBoids(meshRenderer);
-        _InitShader();
-
-        _unsafeFrustumPlanes = new UnsafeReadonlyArray<Plane>(_frustumPlane);
-        _nativeBoidList = _dog.Add(new NativeList<Boid>(Allocator.Persistent));
-        _nativeVisibleIndices = _dog.Add(new NativeList<int>(Allocator.Persistent));
-        _nativeVisibleMatrices = _dog.Add(new NativeList<Matrix4x4>(Allocator.Persistent));
     }
 
     private void OnDisable()
     {
+        _jobHandle.Complete();
         _unsafeFrustumPlanes.Dispose();
         _dog.DisposeAnClear();
     }
@@ -185,9 +188,10 @@ public class SimpleFlocking : MonoBehaviour
     private RWStructuredBuffer<Boid> _boidsBuffer;
 
     private MeshInstanced _meshInstanced;
+    private JobHandle _jobHandle;
+
     private readonly Plane[] _frustumPlane = new Plane[6];
     private UnsafeReadonlyArray<Plane> _unsafeFrustumPlanes;
-
     private NativeList<Boid> _nativeBoidList;
     private NativeList<int> _nativeVisibleIndices;
     private NativeList<Matrix4x4> _nativeVisibleMatrices;
