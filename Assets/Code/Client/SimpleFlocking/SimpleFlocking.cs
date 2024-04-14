@@ -25,7 +25,7 @@ public class SimpleFlocking : MonoBehaviour
         public Boid(Vector3 pos)
         {
             position = pos;
-            direction = Vector3.zero;
+            direction = Vector3.forward;
             localBounds = default;
         }
     }
@@ -44,7 +44,6 @@ public class SimpleFlocking : MonoBehaviour
     private ComputeKernel _kernel;
     private RWStructuredBuffer<Boid> _boidsBuffer;
 
-    private Transform[] _boidTransforms;
     private MeshInstanced _meshInstanced;
     private readonly Slice<Matrix4x4> _matrices = new();
     private readonly Plane[] _frustumPlane = new Plane[6];
@@ -57,22 +56,22 @@ public class SimpleFlocking : MonoBehaviour
         var meshRenderer = boidPrefab.GetComponent<MeshRenderer>();
         _meshInstanced = MeshInstanced.Create(meshRenderer);
 
-        _InitBoids();
+        _InitBoids(meshRenderer);
         _InitShader();
     }
 
-    private void _InitBoids()
+    private void _InitBoids(MeshRenderer meshRenderer)
     {
-        _boidTransforms = new Transform[boidsCount];
-
+        var prefabBounds = meshRenderer.localBounds;
         var boidData = new Boid[boidsCount];
         for (var i = 0; i < boidsCount; i++)
         {
-            var pos = transform.position + Random.insideUnitSphere * spawnRadius;
-            boidData[i] = new Boid(pos);
-            _boidTransforms[i] = Instantiate(boidPrefab, pos, Quaternion.identity).transform;
-            boidData[i].direction = _boidTransforms[i].forward;
-            boidData[i].localBounds = _boidTransforms[i].GetComponent<MeshRenderer>().localBounds;
+            var position = transform.position + Random.insideUnitSphere * spawnRadius;
+            boidData[i] = new Boid(position);
+
+            var matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one);
+            var localBounds = new Bounds(matrix.MultiplyPoint(prefabBounds.center), prefabBounds.size);
+            boidData[i].localBounds = localBounds;
         }
 
         _kernel.SetBuffer(_boidsBuffer, boidData);
