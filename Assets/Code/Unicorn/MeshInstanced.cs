@@ -9,6 +9,7 @@ Copyright (C) - All Rights Reserved
 
 using System;
 using Unicorn.Collections;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Unicorn
@@ -66,6 +67,20 @@ namespace Unicorn
             {
                 var size = Math.Min(maxBatchSize, total - i);
                 Graphics.RenderMeshInstanced(_renderParams, _sharedMesh, 0, visibleMatrices.Items, size, i);
+            }
+        }
+        
+        public void Render(NativeArray<Matrix4x4> visibleMatrices)
+        {
+            // 单次推送的上限就是1023个
+            // https://docs.unity3d.com/ScriptReference/Graphics.RenderMeshInstanced.html
+            const int maxBatchSize = 1023;
+            var total = visibleMatrices.Length;
+
+            for (var i = 0; i < total; i += maxBatchSize)
+            {
+                var size = Math.Min(maxBatchSize, total - i);
+                Graphics.RenderMeshInstanced(_renderParams, _sharedMesh, 0, visibleMatrices, size, i);
             }
         }
 

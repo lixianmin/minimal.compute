@@ -38,22 +38,47 @@ public class SimpleFlocking : MonoBehaviour
     {
         [ReadOnly] public UnsafeReadonlyArray<Plane> frustumPlanes;
         [ReadOnly] public NativeList<Boid> boidList;
-    
+
         public bool Execute(int index)
         {
             var boid = boidList[index];
-            
+
             var rotation = Quaternion.identity;
             if (boid.direction != Vector3.zero)
             {
                 rotation = Quaternion.LookRotation(boid.direction);
             }
-            
+
             var matrix = Matrix4x4.TRS(boid.position, rotation, Vector3.one);
             var worldBounds = new Bounds(matrix.MultiplyPoint(boid.localBounds.center), boid.localBounds.size);
-            
+
             var isVisible = FrustumTools.TestPlanesAABB(frustumPlanes, worldBounds);
             return isVisible;
+        }
+    }
+
+    [BurstCompile]
+    private struct CollectMatrixJob : IJob
+    {
+        [ReadOnly] public NativeList<Boid> boidList;
+        [ReadOnly] public NativeList<int> visibleIndices;
+        [WriteOnly] public NativeList<Matrix4x4> visibleMatrices;
+
+        public void Execute()
+        {
+            for (var i = 0; i < visibleIndices.Length; i++)
+            {
+                var index = visibleIndices[i];
+                var boid = boidList[index];
+                var rotation = Quaternion.identity;
+                if (boid.direction != Vector3.zero)
+                {
+                    rotation = Quaternion.LookRotation(boid.direction);
+                }
+
+                var matrix = Matrix4x4.TRS(boid.position, rotation, Vector3.one);
+                visibleMatrices.Add(matrix);
+            }
         }
     }
 
@@ -109,35 +134,27 @@ public class SimpleFlocking : MonoBehaviour
         _kernel.Dispatch(boidsCount);
 
         var boidArray = _boidsBuffer.GetDataAsync();
-        
+
         _nativeBoidList.Clear();
         _nativeBoidList.AddRange(boidArray);
 
         _nativeVisibleIndices.Clear();
-        var handle = new TestVisibleJobFilter
+        var testVisibleHandle = new TestVisibleJobFilter
         {
             frustumPlanes = _unsafeFrustumPlanes,
             boidList = _nativeBoidList,
         }.ScheduleAppend(_nativeVisibleIndices, boidArray.Length);
-        
-        handle.Complete();
-        
-        _matrices.Clear();
-        for (var i = 0; i < _nativeVisibleIndices.Length; i++)
+
+        _nativeVisibleMatrices.Clear();
+        var collectHandle = new CollectMatrixJob()
         {
-            var index = _nativeVisibleIndices[i];
-            var boid = boidArray[index];
-            var rotation = Quaternion.identity;
-            if (boid.direction != Vector3.zero)
-            {
-                rotation = Quaternion.LookRotation(boid.direction);
-            }
-
-            var matrix = Matrix4x4.TRS(boid.position, rotation, Vector3.one);
-            _matrices.Add(matrix);
-        }
-
-        _meshInstanced.Render(_matrices);
+            boidList = _nativeBoidList,
+            visibleIndices = _nativeVisibleIndices,
+            visibleMatrices = _nativeVisibleMatrices,
+        }.Schedule(testVisibleHandle);
+        collectHandle.Complete();
+        
+        _meshInstanced.Render(_nativeVisibleMatrices.AsArray());
     }
 
     private void OnEnable()
@@ -154,27 +171,27 @@ public class SimpleFlocking : MonoBehaviour
         _unsafeFrustumPlanes = new UnsafeReadonlyArray<Plane>(_frustumPlane);
         _nativeBoidList = new NativeList<Boid>(Allocator.Persistent);
         _nativeVisibleIndices = new NativeList<int>(Allocator.Persistent);
+        _nativeVisibleMatrices = new NativeList<Matrix4x4>(Allocator.Persistent);
     }
 
     private void OnDisable()
     {
         _boidsBuffer.Dispose();
-        
+
         _unsafeFrustumPlanes.Dispose();
         _nativeBoidList.Dispose();
         _nativeVisibleIndices.Dispose();
+        _nativeVisibleMatrices.Dispose();
     }
-    
-    
+
     private ComputeKernel _kernel;
     private RWStructuredBuffer<Boid> _boidsBuffer;
 
     private MeshInstanced _meshInstanced;
-    private readonly Slice<Matrix4x4> _matrices = new();
-    
     private readonly Plane[] _frustumPlane = new Plane[6];
     private UnsafeReadonlyArray<Plane> _unsafeFrustumPlanes;
 
     private NativeList<Boid> _nativeBoidList;
     private NativeList<int> _nativeVisibleIndices;
+    private NativeList<Matrix4x4> _nativeVisibleMatrices;
 }
