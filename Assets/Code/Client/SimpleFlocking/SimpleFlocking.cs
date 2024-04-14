@@ -22,11 +22,11 @@ public class SimpleFlocking : MonoBehaviour
         public Vector3 direction;
         public Bounds localBounds;
 
-        public Boid(Vector3 pos)
+        public Boid(Vector3 position, Bounds localBounds)
         {
-            position = pos;
+            this.position = position;
             direction = Vector3.forward;
-            localBounds = default;
+            this.localBounds = localBounds;
         }
     }
 
@@ -67,11 +67,10 @@ public class SimpleFlocking : MonoBehaviour
         for (var i = 0; i < boidsCount; i++)
         {
             var position = transform.position + Random.insideUnitSphere * spawnRadius;
-            boidData[i] = new Boid(position);
-
             var matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one);
             var localBounds = new Bounds(matrix.MultiplyPoint(prefabBounds.center), prefabBounds.size);
-            boidData[i].localBounds = localBounds;
+            
+            boidData[i] = new Boid(position, localBounds);
         }
 
         _kernel.SetBuffer(_boidsBuffer, boidData);
@@ -103,6 +102,7 @@ public class SimpleFlocking : MonoBehaviour
 
         var boidData = _boidsBuffer.GetDataAsync();
         _matrices.Clear();
+        
         for (var i = 0; i < boidData.Length; i++)
         {
             var boid = boidData[i];
