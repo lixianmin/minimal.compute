@@ -7,7 +7,10 @@ Copyright (C) - All Rights Reserved
 
 using System.Runtime.InteropServices;
 using Unicorn;
+using Unity.Burst;
+using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Jobs;
 using Random = UnityEngine.Random;
 
 public class SimpleFlocking : MonoBehaviour
@@ -21,6 +24,24 @@ public class SimpleFlocking : MonoBehaviour
         {
             position = pos;
             direction = Vector3.zero;
+        }
+    }
+
+    [BurstCompile]
+    private struct BoidTransformJob : IJobParallelForTransform
+    {
+        [ReadOnly]
+        public NativeArray<Boid> boids;
+
+        public void Execute(int index, TransformAccess transform)
+        {
+            var boid = boids[index];
+            transform.localPosition = boid.position;
+
+            if (boid.direction != Vector3.zero)
+            {
+                transform.rotation = Quaternion.LookRotation(boid.direction);
+            }
         }
     }
 
@@ -38,30 +59,32 @@ public class SimpleFlocking : MonoBehaviour
     private ComputeKernel _kernel;
     private RWStructuredBuffer<Boid> _boidsBuffer;
 
-    private GameObject[] _boids;
+    private Transform[] _boidTransforms;
+    private TransformAccessArray _boidTransformAccess;
 
     private void Awake()
     {
         _kernel = new ComputeKernel(shader, "CSMain");
         _boidsBuffer = new RWStructuredBuffer<Boid>("boids_buffer", Marshal.SizeOf(typeof(Boid)));
-        
+
         _InitBoids();
         _InitShader();
     }
 
     private void _InitBoids()
     {
-        _boids = new GameObject[boidsCount];
-        
+        _boidTransforms = new Transform[boidsCount];
+
         var boidData = new Boid[boidsCount];
         for (var i = 0; i < boidsCount; i++)
         {
             var pos = transform.position + Random.insideUnitSphere * spawnRadius;
             boidData[i] = new Boid(pos);
-            _boids[i] = Instantiate(boidPrefab, pos, Quaternion.identity);
-            boidData[i].direction = _boids[i].transform.forward;
+            _boidTransforms[i] = Instantiate(boidPrefab, pos, Quaternion.identity).transform;
+            boidData[i].direction = _boidTransforms[i].forward;
         }
-        
+
+        _boidTransformAccess = new TransformAccessArray(_boidTransforms);
         _kernel.SetBuffer(_boidsBuffer, boidData);
     }
 
@@ -82,24 +105,31 @@ public class SimpleFlocking : MonoBehaviour
         _kernel.Dispatch(boidsCount);
 
         var boidData = _boidsBuffer.GetDataAsync();
-        for (var i = 0; i < boidData.Length; i++)
-        {
-            _boids[i].transform.localPosition = boidData[i].position;
-
-            if (!boidData[i].direction.Equals(Vector3.zero))
-            {
-                _boids[i].transform.rotation = Quaternion.LookRotation(boidData[i].direction);
-            }
-        }
-    }
-
-    private void LateUpdate()
-    {
+        var boids = new NativeArray<Boid>(boidData, Allocator.TempJob);
         
+        var job = new BoidTransformJob
+        {
+            boids = boids
+        };
+
+        var handle = job.Schedule(_boidTransformAccess);
+        handle.Complete();
+        boids.Dispose();
+
+        // for (var i = 0; i < boidData.Length; i++)
+        // {
+        //     _boidTransforms[i].localPosition = boidData[i].position;
+        //
+        //     if (!boidData[i].direction.Equals(Vector3.zero))
+        //     {
+        //         _boidTransforms[i].rotation = Quaternion.LookRotation(boidData[i].direction);
+        //     }
+        // }
     }
 
     private void OnDestroy()
     {
         _boidsBuffer.Dispose();
+        _boidTransformAccess.Dispose();
     }
 }
