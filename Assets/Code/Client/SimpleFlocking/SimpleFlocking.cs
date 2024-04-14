@@ -183,7 +183,7 @@ public class SimpleFlocking : MonoBehaviour
     private void OnDisable()
     {
         _jobHandle.Complete();
-        _dog.DisposeAnClear();
+        _dog.DisposeAndClear();
     }
 
     private readonly DisposeDog _dog = new();
