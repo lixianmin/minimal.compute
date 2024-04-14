@@ -60,7 +60,7 @@ public class SimpleFlocking : MonoBehaviour
     private RWStructuredBuffer<Boid> _boidsBuffer;
 
     private Transform[] _boidTransforms;
-    private InstanceRenderer _instanceRenderer;
+    private MeshInstanced _meshInstanced;
     private readonly Slice<Matrix4x4> _matrices = new();
 
     private void Awake()
@@ -69,7 +69,7 @@ public class SimpleFlocking : MonoBehaviour
         _boidsBuffer = new RWStructuredBuffer<Boid>("boids_buffer", Marshal.SizeOf(typeof(Boid)));
 
         var meshRenderer = boidPrefab.GetComponent<MeshRenderer>();
-        _instanceRenderer = new InstanceRenderer(meshRenderer);
+        _meshInstanced = MeshInstanced.Create(meshRenderer);
 
         _InitBoids();
         _InitShader();
@@ -122,7 +122,7 @@ public class SimpleFlocking : MonoBehaviour
             _matrices.Add(matrix);
         }
 
-        _instanceRenderer.RenderMeshInstanced(_matrices);
+        _meshInstanced.Render(_matrices);
     }
     
     private void OnDestroy()
