@@ -20,28 +20,13 @@ public class SimpleFlocking : MonoBehaviour
     {
         public Vector3 position;
         public Vector3 direction;
+        public Bounds localBounds;
 
         public Boid(Vector3 pos)
         {
             position = pos;
             direction = Vector3.zero;
-        }
-    }
-
-    [BurstCompile]
-    private struct BoidTransformJob : IJobParallelForTransform
-    {
-        [ReadOnly] public UnsafeReadonlyArray<Boid> boids;
-
-        public void Execute(int index, TransformAccess transform)
-        {
-            var boid = boids[index];
-            transform.localPosition = boid.position;
-
-            if (boid.direction != Vector3.zero)
-            {
-                transform.rotation = Quaternion.LookRotation(boid.direction);
-            }
+            localBounds = default;
         }
     }
 
@@ -62,6 +47,7 @@ public class SimpleFlocking : MonoBehaviour
     private Transform[] _boidTransforms;
     private MeshInstanced _meshInstanced;
     private readonly Slice<Matrix4x4> _matrices = new();
+    private readonly Plane[] _frustumPlane = new Plane[6];
 
     private void Awake()
     {
@@ -86,6 +72,7 @@ public class SimpleFlocking : MonoBehaviour
             boidData[i] = new Boid(pos);
             _boidTransforms[i] = Instantiate(boidPrefab, pos, Quaternion.identity).transform;
             boidData[i].direction = _boidTransforms[i].forward;
+            boidData[i].localBounds = _boidTransforms[i].GetComponent<MeshRenderer>().localBounds;
         }
 
         _kernel.SetBuffer(_boidsBuffer, boidData);
@@ -103,6 +90,14 @@ public class SimpleFlocking : MonoBehaviour
 
     private void Update()
     {
+        var mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            return;
+        }
+        
+        GeometryUtility.CalculateFrustumPlanes(mainCamera, _frustumPlane);
+
         shader.SetFloat("time", Time.time);
         shader.SetFloat("deltaTime", Time.deltaTime);
         _kernel.Dispatch(boidsCount);
@@ -119,12 +114,16 @@ public class SimpleFlocking : MonoBehaviour
             }
 
             var matrix = Matrix4x4.TRS(boid.position, rotation, Vector3.one);
-            _matrices.Add(matrix);
+            var worldBounds = new Bounds(matrix.MultiplyPoint(boid.localBounds.center), boid.localBounds.size);
+            if (InstanceTools.TestPlanesAABB(_frustumPlane, worldBounds))
+            {
+                _matrices.Add(matrix);
+            }
         }
 
         _meshInstanced.Render(_matrices);
     }
-    
+
     private void OnDestroy()
     {
         _boidsBuffer.Dispose();

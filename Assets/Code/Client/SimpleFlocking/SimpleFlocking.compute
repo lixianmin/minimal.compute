@@ -7,10 +7,17 @@ Copyright (C) - All Rights Reserved
 
 #pragma kernel CSMain
 
+struct Bounds
+{
+    float3 center;
+    float3 extents;
+};
+
 struct Boid
 {
     float3 position;
     float3 direction;
+    Bounds localBounds;
 };
 
 RWStructuredBuffer<Boid> boids_buffer;

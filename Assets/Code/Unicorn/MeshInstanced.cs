@@ -44,7 +44,7 @@ namespace Unicorn
 
             renderer.enabled = false;
 
-            var renderParams = _CreateRenderParams(sharedMaterials[0], renderer);
+            var renderParams = InstanceTools.CreateRenderParams(sharedMaterials[0], renderer);
             var my = new MeshInstanced(renderParams, sharedMesh);
             return my;
         }
@@ -67,24 +67,6 @@ namespace Unicorn
                 var size = Math.Min(maxBatchSize, total - i);
                 Graphics.RenderMeshInstanced(_renderParams, _sharedMesh, 0, visibleMatrices.Items, size, i);
             }
-        }
-
-        private static RenderParams _CreateRenderParams(Material material, Renderer renderer, Camera camera = null)
-        {
-            var renderParams = new RenderParams(material);
-            if (renderer != null)
-            {
-                renderParams.shadowCastingMode = renderer.shadowCastingMode;
-            }
-
-            // 如果不设置, 就会在所有camera中渲染一遍, 这包括UICamera, 所以在release的时候必须要设置
-            // 但如果一直设置, 在Editor中的Scene窗口就看不到了, 所以在Editor中倾向于不设置
-            if (!Application.isEditor)
-            {
-                renderParams.camera = camera;
-            }
-
-            return renderParams;
         }
 
         private readonly RenderParams _renderParams;
