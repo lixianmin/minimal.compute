@@ -160,7 +160,7 @@ public class SimpleFlocking : MonoBehaviour
     private void OnEnable()
     {
         _kernel = new ComputeKernel(shader, "CSMain");
-        _boidsBuffer = new RWStructuredBuffer<Boid>("boids_buffer", Marshal.SizeOf(typeof(Boid)));
+        _boidsBuffer = _dog.Add(new RWStructuredBuffer<Boid>("boids_buffer", Marshal.SizeOf(typeof(Boid))));
 
         var meshRenderer = boidPrefab.GetComponent<MeshRenderer>();
         _meshInstanced = MeshInstanced.Create(meshRenderer);
@@ -169,21 +169,18 @@ public class SimpleFlocking : MonoBehaviour
         _InitShader();
 
         _unsafeFrustumPlanes = new UnsafeReadonlyArray<Plane>(_frustumPlane);
-        _nativeBoidList = new NativeList<Boid>(Allocator.Persistent);
-        _nativeVisibleIndices = new NativeList<int>(Allocator.Persistent);
-        _nativeVisibleMatrices = new NativeList<Matrix4x4>(Allocator.Persistent);
+        _nativeBoidList = _dog.Add(new NativeList<Boid>(Allocator.Persistent));
+        _nativeVisibleIndices = _dog.Add(new NativeList<int>(Allocator.Persistent));
+        _nativeVisibleMatrices = _dog.Add(new NativeList<Matrix4x4>(Allocator.Persistent));
     }
 
     private void OnDisable()
     {
-        _boidsBuffer.Dispose();
-
         _unsafeFrustumPlanes.Dispose();
-        _nativeBoidList.Dispose();
-        _nativeVisibleIndices.Dispose();
-        _nativeVisibleMatrices.Dispose();
+        _dog.DisposeAnClear();
     }
 
+    private readonly DisposeDog _dog = new();
     private ComputeKernel _kernel;
     private RWStructuredBuffer<Boid> _boidsBuffer;
 
