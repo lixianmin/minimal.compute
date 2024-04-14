@@ -60,8 +60,6 @@ public class SimpleFlocking : MonoBehaviour
     private RWStructuredBuffer<Boid> _boidsBuffer;
 
     private Transform[] _boidTransforms;
-    private TransformAccessArray _boidTransformAccess;
-
     private InstanceRenderer _instanceRenderer;
     private readonly Slice<Matrix4x4> _matrices = new();
 
@@ -90,7 +88,6 @@ public class SimpleFlocking : MonoBehaviour
             boidData[i].direction = _boidTransforms[i].forward;
         }
 
-        _boidTransformAccess = new TransformAccessArray(_boidTransforms);
         _kernel.SetBuffer(_boidsBuffer, boidData);
     }
 
@@ -131,6 +128,5 @@ public class SimpleFlocking : MonoBehaviour
     private void OnDestroy()
     {
         _boidsBuffer.Dispose();
-        _boidTransformAccess.Dispose();
     }
 }
