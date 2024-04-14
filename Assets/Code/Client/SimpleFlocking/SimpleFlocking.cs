@@ -5,6 +5,8 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
+using System.Runtime.InteropServices;
+using Unicorn;
 using UnityEngine;
 
 public class SimpleFlocking : MonoBehaviour
@@ -32,46 +34,39 @@ public class SimpleFlocking : MonoBehaviour
     public float spawnRadius;
     public Transform target;
 
-    private int kernelHandle;
-    private ComputeBuffer boidsBuffer;
-    private Boid[] boidsArray;
-    private GameObject[] boids;
-    private int groupSizeX;
-    private int numOfBoids;
+    private ComputeKernel _kernel;
+    private RWStructuredBuffer<Boid> _boidsBuffer;
+
+    private Boid[] _boidsArray;
+    private GameObject[] _boids;
 
     private void Start()
     {
-        kernelHandle = shader.FindKernel("CSMain");
-
-        uint x;
-        shader.GetKernelThreadGroupSizes(kernelHandle, out x, out _, out _);
-        groupSizeX = Mathf.CeilToInt(boidsCount / (float)x);
-        numOfBoids = groupSizeX * (int)x;
-
+        _kernel = new ComputeKernel(shader, "CSMain");
+        _boidsBuffer = new RWStructuredBuffer<Boid>("boidsBuffer", Marshal.SizeOf(typeof(Boid)));
+        
         _InitBoids();
         _InitShader();
     }
 
     private void _InitBoids()
     {
-        boids = new GameObject[numOfBoids];
-        boidsArray = new Boid[numOfBoids];
+        _boids = new GameObject[boidsCount];
+        _boidsArray = new Boid[boidsCount];
 
-        for (var i = 0; i < numOfBoids; i++)
+        for (var i = 0; i < boidsCount; i++)
         {
             var pos = transform.position + Random.insideUnitSphere * spawnRadius;
-            boidsArray[i] = new Boid(pos);
-            boids[i] = Instantiate(boidPrefab, pos, Quaternion.identity);
-            boidsArray[i].direction = boids[i].transform.forward;
+            _boidsArray[i] = new Boid(pos);
+            _boids[i] = Instantiate(boidPrefab, pos, Quaternion.identity);
+            _boidsArray[i].direction = _boids[i].transform.forward;
         }
     }
 
     private void _InitShader()
     {
-        boidsBuffer = new ComputeBuffer(numOfBoids, 6 * sizeof(float));
-        boidsBuffer.SetData(boidsArray);
+        _kernel.SetBuffer(_boidsBuffer, _boidsArray);
 
-        shader.SetBuffer(kernelHandle, "boidsBuffer", boidsBuffer);
         shader.SetFloat("rotationSpeed", rotationSpeed);
         shader.SetFloat("boidSpeed", boidSpeed);
         shader.SetFloat("boidSpeedVariation", boidSpeedVariation);
@@ -84,23 +79,23 @@ public class SimpleFlocking : MonoBehaviour
     {
         shader.SetFloat("time", Time.time);
         shader.SetFloat("deltaTime", Time.deltaTime);
-        shader.Dispatch(kernelHandle, groupSizeX, 1, 1);
+        _kernel.Dispatch(boidsCount);
 
-        boidsBuffer.GetData(boidsArray);
+        _boidsArray = _boidsBuffer.GetData();
 
-        for (var i = 0; i < boidsArray.Length; i++)
+        for (var i = 0; i < _boidsArray.Length; i++)
         {
-            boids[i].transform.localPosition = boidsArray[i].position;
+            _boids[i].transform.localPosition = _boidsArray[i].position;
 
-            if (!boidsArray[i].direction.Equals(Vector3.zero))
+            if (!_boidsArray[i].direction.Equals(Vector3.zero))
             {
-                boids[i].transform.rotation = Quaternion.LookRotation(boidsArray[i].direction);
+                _boids[i].transform.rotation = Quaternion.LookRotation(_boidsArray[i].direction);
             }
         }
     }
 
     private void OnDestroy()
     {
-        boidsBuffer?.Dispose();
+        _boidsBuffer.Dispose();
     }
 }

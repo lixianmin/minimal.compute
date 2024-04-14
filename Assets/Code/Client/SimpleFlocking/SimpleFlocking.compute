@@ -18,8 +18,13 @@ float neighbourDistance;
 int boidsCount;
 
 [numthreads(64,1,1)]
-void CSMain(uint3 id : SV_DispatchThreadID)
+void CSMain(int3 id : SV_DispatchThreadID)
 {
+    if (id.x >= boidsCount)
+    {
+        return;
+    }
+    
     Boid boid = boidsBuffer[id.x];
 
     float3 separation = 0;
