@@ -131,12 +131,12 @@ public class SimpleFlocking : MonoBehaviour
 
     private void _InitShader()
     {
-        shader.SetFloat("rotationSpeed", rotationSpeed);
-        shader.SetFloat("boidSpeed", boidSpeed);
-        shader.SetFloat("boidSpeedVariation", boidSpeedVariation);
-        shader.SetVector("flockPosition", target.transform.position);
-        shader.SetFloat("neighbourDistance", neighbourDistance);
-        shader.SetInt("boidsCount", boidsCount);
+        shader.SetFloat("rotation_speed", rotationSpeed);
+        shader.SetFloat("boid_speed", boidSpeed);
+        shader.SetFloat("boid_speed_variation", boidSpeedVariation);
+        shader.SetVector("flock_position", target.transform.position);
+        shader.SetFloat("neighbour_distance", neighbourDistance);
+        shader.SetInt("boids_count", boidsCount);
     }
 
     private void Update()
@@ -155,7 +155,7 @@ public class SimpleFlocking : MonoBehaviour
         GeometryUtility.CalculateFrustumPlanes(mainCamera, _frustumPlane);
 
         shader.SetFloat("time", Time.time);
-        shader.SetFloat("deltaTime", Time.deltaTime);
+        shader.SetFloat("delta_time", Time.deltaTime);
         _kernel.Dispatch(boidsCount);
 
         var boidArray = _boidsBuffer.GetDataAsync();
