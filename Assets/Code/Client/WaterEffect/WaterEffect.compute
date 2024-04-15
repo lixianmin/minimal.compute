@@ -1,0 +1,65 @@
+/********************************************************************
+created:    2024-04-12
+author:     lixianmin
+
+https://www.youtube.com/watch?v=4CNad5V9wD8
+
+Copyright (C) - All Rights Reserved
+*********************************************************************/
+
+#pragma kernel CSMain
+#pragma kernel CopyTexture
+
+RWTexture2D<float4> NState;
+RWTexture2D<float4> Nm1State; // minus 1
+RWTexture2D<float4> Np1State; // plus 1
+
+float3 effect;
+float dispersion;
+
+[numthreads(8, 8, 1)]
+void CopyTexture(int3 id : SV_DispatchThreadID)
+{
+    Nm1State[id.xy] = NState[id.xy];
+    NState[id.xy] = Np1State[id.xy];
+}
+
+// id.x的最大值是256, id.x * id.y的最大值1024
+// numthreads定义的是每个线程组内的线程数
+[numthreads(8, 8, 1)]
+void CSMain(int3 id : SV_DispatchThreadID)
+{
+    int width, height;
+    NState.GetDimensions(width, height);
+    if (id.x >= width || id.y >= height)
+    {
+        return;
+    }
+
+    // https://www.cnblogs.com/X-Jun/p/12272328.html#_lab2_2_0
+    // 这里原先是在csharp中使用Graphics.CopyTexture(NState, Nm1State)
+    // 当 dispersion=0.99时就会乱掉
+    // 本算法并不是只读取了id.xy, 后面还读了id.xy + uint2(1,0)这些
+    // 
+    // Nm1State[id.xy] = NState[id.xy];
+    // NState[id.xy] = Np1State[id.xy];
+    // AllMemoryBarrier();
+
+    float ns_ij = NState[id.xy].x;
+    float nm1s_ij = Nm1State[id.xy].x;
+
+    float ns_ip1j = NState[id.xy + uint2(1, 0)].x; // ip1j => i+1, j
+    float ns_ijp1 = NState[id.xy + uint2(0, 1)].x; // ijp1 => i, j+1
+    float ns_im1j = NState[id.xy - uint2(1, 0)].x; // im1j => i-1, j
+    float ns_ijm1 = NState[id.xy - uint2(0, 1)].x; // ijm1 => i, j-1
+
+    float wave_height = ns_ij * 2 - nm1s_ij + 0.25 * (ns_ip1j + ns_ijp1 + ns_im1j + ns_ijm1 - 4 * ns_ij);
+    wave_height = wave_height * dispersion;
+
+    if (id.x == floor(effect.x) && id.y == floor(effect.y))
+    {
+        wave_height = effect.z;
+    }
+
+    Np1State[id.xy] = float4(wave_height, wave_height, wave_height, 1);
+}

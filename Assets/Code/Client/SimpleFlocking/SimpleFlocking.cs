@@ -77,10 +77,12 @@ public class SimpleFlocking : MonoBehaviour
                 var rotation = quaternion.identity;
                 if (direction.x != 0 || direction.y != 0 || direction.z != 0)
                 {
-                    rotation = quaternion.LookRotation(direction, new float3(0, 1, 0));
+                    var up = new float3(0, 1, 0);
+                    rotation = quaternion.LookRotation(direction, up);
                 }
 
-                var matrix = float4x4.TRS(boid.position, rotation, new float3(1, 1, 1));
+                var one = new float3(1, 1, 1);
+                var matrix = float4x4.TRS(boid.position, rotation, one);
                 visibleMatrices.Add(matrix);
             }
         }
@@ -181,8 +183,9 @@ public class SimpleFlocking : MonoBehaviour
     private void OnDisable()
     {
         _jobHandle.Complete();
-        _unsafeBoids.Dispose();
         _dog.DisposeAndClear();
+
+        _unsafeBoids.Dispose();
     }
 
     private readonly DisposeDog _dog = new();
@@ -197,7 +200,7 @@ public class SimpleFlocking : MonoBehaviour
     private UnsafeReadonlyArray<Boid> _unsafeBoids;
     private NativeList<int> _nativeVisibleIndices;
     private NativeList<Matrix4x4> _nativeVisibleMatrices;
-    
+
     private static readonly int TimeId = Shader.PropertyToID("time");
     private static readonly int DeltaTimeId = Shader.PropertyToID("delta_time");
 }
