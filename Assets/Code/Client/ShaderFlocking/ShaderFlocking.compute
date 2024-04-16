@@ -1,0 +1,79 @@
+﻿/********************************************************************
+created:    2024-04-14
+author:     lixianmin
+
+Copyright (C) - All Rights Reserved
+*********************************************************************/
+
+#pragma kernel CSMain
+
+struct Bounds
+{
+    float3 center;
+    float3 size;
+};
+
+struct Boid
+{
+    float3 position;
+    float3 direction;
+    Bounds local_bounds;
+};
+
+RWStructuredBuffer<Boid> boids_buffer;
+
+float time;
+float delta_time;
+float rotation_speed;
+float boid_speed;
+float boid_speed_variation;
+float3 flock_position;
+float neighbour_distance;
+int boids_count;
+
+[numthreads(64,1,1)]
+void CSMain(int3 id : SV_DispatchThreadID)
+{
+    if (id.x >= boids_count)
+    {
+        return;
+    }
+    
+    Boid boid = boids_buffer[id.x];
+
+    float3 separation = 0;
+    float3 alignment = 0;
+    float3 cohesion = flock_position;
+
+    uint nearbyCount = 1; // Add self that is ignored in loop
+
+    for (int i = 0; i < boids_count; i++)
+    {
+        if (i != int(id.x))
+        {
+            const Boid temp_boid = boids_buffer[i];
+            const float3 offset = boid.position - temp_boid.position;
+            const float dist = max(length(offset), 0.00001);
+            if (dist < neighbour_distance)
+            {
+                separation += offset * (1.0 / dist - 1.0 / neighbour_distance);
+                alignment += temp_boid.direction;
+                cohesion += temp_boid.position;
+                nearbyCount++;
+            }
+        }
+    }
+
+    const float average = 1.0 / nearbyCount;
+    alignment *= average;
+    cohesion *= average;
+    cohesion = normalize(cohesion - boid.position);
+
+    const float3 direction = alignment + separation + cohesion;
+
+    const float prop = 0.94;
+    boid.direction = lerp(direction, normalize(boid.direction), prop);
+    boid.position += boid.direction * boid_speed * delta_time;
+
+    boids_buffer[id.x] = boid;
+}
