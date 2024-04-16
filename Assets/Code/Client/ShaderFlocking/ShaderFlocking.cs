@@ -52,15 +52,15 @@ public class ShaderFlocking : MonoBehaviour
         _kernel = new ComputeKernel(shader, "CSMain");
         _boidsBuffer = _dog.Add(new RWStructuredBuffer<Boid>("boids_buffer", Marshal.SizeOf(typeof(Boid))));
 
-        bounds = new Bounds(Vector3.zero, Vector3.one * 1000);
-        argsBuffer = new ComputeBuffer(1, 5 * sizeof(uint), ComputeBufferType.IndirectArguments);
+        _bounds = new Bounds(Vector3.zero, Vector3.one * 1000);
+        _argsBuffer = new ComputeBuffer(1, 5 * sizeof(uint), ComputeBufferType.IndirectArguments);
         if (boidMesh != null)
         {
-            args[0] = (uint)boidMesh.GetIndexCount(0);
-            args[1] = (uint)boidsCount;
+            _args[0] = (uint)boidMesh.GetIndexCount(0);
+            _args[1] = (uint)boidsCount;
         }
 
-        argsBuffer.SetData(args);
+        _argsBuffer.SetData(_args);
 
         var meshRenderer = boidPrefab.GetComponent<MeshRenderer>();
         _InitBoids(meshRenderer);
@@ -70,17 +70,17 @@ public class ShaderFlocking : MonoBehaviour
     private void _InitBoids(MeshRenderer meshRenderer)
     {
         var prefabBounds = meshRenderer.localBounds;
-        var boidData = new Boid[boidsCount];
+        var boidArray = new Boid[boidsCount];
         for (var i = 0; i < boidsCount; i++)
         {
             var position = transform.position + Random.insideUnitSphere * spawnRadius;
             var matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one);
             var localBounds = new Bounds(matrix.MultiplyPoint(prefabBounds.center), prefabBounds.size);
 
-            boidData[i] = new Boid(position, localBounds);
+            boidArray[i] = new Boid(position, localBounds);
         }
 
-        _kernel.SetBuffer(_boidsBuffer, boidData);
+        _kernel.SetBuffer(_boidsBuffer, boidArray);
     }
 
     private void _InitShader()
@@ -91,6 +91,8 @@ public class ShaderFlocking : MonoBehaviour
         shader.SetVector("flock_position", target.transform.position);
         shader.SetFloat("neighbour_distance", neighbourDistance);
         shader.SetInt("boids_count", boidsCount);
+        
+        boidMaterial.SetBuffer("boids_buffer", _boidsBuffer.GetBuffer());
     }
 
     private void Update()
@@ -99,22 +101,22 @@ public class ShaderFlocking : MonoBehaviour
         shader.SetFloat(DeltaTimeId, Time.deltaTime);
         _kernel.Dispatch(boidsCount);
 
-        Graphics.DrawMeshInstancedIndirect(boidMesh, 0, boidMaterial, bounds, argsBuffer);
+        Graphics.DrawMeshInstancedIndirect(boidMesh, 0, boidMaterial, _bounds, _argsBuffer);
     }
 
     private void OnDisable()
     {
         _dog.DisposeAndClear();
-        argsBuffer.Dispose();
+        _argsBuffer.Dispose();
     }
 
     private readonly DisposeDog _dog = new();
     private ComputeKernel _kernel;
     private RWStructuredBuffer<Boid> _boidsBuffer;
 
-    private uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
-    private ComputeBuffer argsBuffer;
-    private Bounds bounds;
+    private readonly uint[] _args = new uint[5] { 0, 0, 0, 0, 0 };
+    private ComputeBuffer _argsBuffer;
+    private Bounds _bounds;
 
     private static readonly int TimeId = Shader.PropertyToID("time");
     private static readonly int DeltaTimeId = Shader.PropertyToID("delta_time");

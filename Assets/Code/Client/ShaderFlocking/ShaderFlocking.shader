@@ -90,11 +90,10 @@ Shader "Test/ShaderFlocking"
                 const float3 up = float3(0, 1, 0);
                 const float4x4 object_to_world = create_trs_matrix(boid.position, boid.direction, up);
                 const float3 positionWS = mul(object_to_world, input.vertex);
-                
-                // const float3 positionWS = TransformObjectToWorld(input.vertex);
+
                 output.positionCS = TransformWorldToHClip(positionWS);
                 output.normalWS = TransformObjectToWorldDir(input.normal);
-                output.uv0 =  _MainTex_ST.xy + _MainTex_ST.zw;
+                output.uv0 = _MainTex_ST.xy + _MainTex_ST.zw;
                 output.color = _Color;
 
                 return output;

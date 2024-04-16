@@ -24,6 +24,7 @@ RWStructuredBuffer<Boid> boids_buffer;
 
 float time;
 float delta_time;
+
 float rotation_speed;
 float boid_speed;
 float boid_speed_variation;
