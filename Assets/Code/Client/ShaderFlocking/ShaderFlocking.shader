@@ -14,7 +14,7 @@ Shader "Test/ShaderFlocking"
             "RenderType"="Opaque"
             "Queue"="Geometry"
         }
-        
+
         Pass
         {
             Name "Pass"
@@ -26,6 +26,19 @@ Shader "Test/ShaderFlocking"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
+            struct appdata_custom
+            {
+                float4 vertex : POSITION;
+                float3 normal : NORMAL;
+                float4 texcoord : TEXCOORD0;
+                float4 tangent : TANGENT;
+
+                uint id : SV_VertexID;
+                uint instance_id : SV_InstanceID;
+
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
             struct v2f
             {
                 float4 positionCS : SV_POSITION;
@@ -34,40 +47,55 @@ Shader "Test/ShaderFlocking"
                 float4 color : COLOR;
             };
 
-            // Same with the one with compute shader & C# script
-            struct VertexData
+            struct Bounds
             {
-                uint id;
-                float3 pos;
-                float3 nor;
-                float2 uv;
-                float4 col;
+                float3 center;
+                float3 size;
             };
 
-            StructuredBuffer<VertexData> vertexBuffer;
+            struct Boid
+            {
+                float3 position;
+                float3 direction;
+                Bounds local_bounds;
+            };
+
+            StructuredBuffer<Boid> boids_buffer;
 
             CBUFFER_START(UnityPerMaterial)
-            float4 _Color;
-            float4 _MainTex_ST;
+                float4 _Color;
+                float4 _MainTex_ST;
             CBUFFER_END
 
             sampler2D _MainTex;
 
-            v2f vert(uint id : SV_VertexID)
+            float4x4 create_trs_matrix(float3 pos, float3 dir, float3 up)
             {
-                v2f output = (v2f)0;
+                const float3 zaxis = normalize(dir);
+                const float3 xaxis = normalize(cross(up, zaxis));
+                const float3 yaxis = cross(zaxis, xaxis);
+                return float4x4(
+                    xaxis.x, yaxis.x, zaxis.x, pos.x,
+                    xaxis.y, yaxis.y, zaxis.y, pos.y,
+                    xaxis.z, yaxis.z, zaxis.z, pos.z,
+                    0, 0, 0, 1
+                );
+            }
 
-                const uint real_id = vertexBuffer[id].id;
+            v2f vert(appdata_custom input)
+            {
+                v2f output;
 
-                const float3 positionOS = vertexBuffer[real_id].pos;
-                float2 uv0 = vertexBuffer[real_id].uv;
-                const float3 normal = vertexBuffer[real_id].nor;
-                output.color = vertexBuffer[real_id].col;
-
-                const float3 positionWS = TransformObjectToWorld(positionOS);
+                const Boid boid = boids_buffer[input.instance_id];
+                const float3 up = float3(0, 1, 0);
+                const float4x4 object_to_world = create_trs_matrix(boid.position, boid.direction, up);
+                const float3 positionWS = mul(object_to_world, input.vertex);
+                
+                // const float3 positionWS = TransformObjectToWorld(input.vertex);
                 output.positionCS = TransformWorldToHClip(positionWS);
-                output.normalWS = TransformObjectToWorldDir(normal);
-                output.uv0 = uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+                output.normalWS = TransformObjectToWorldDir(input.normal);
+                output.uv0 =  _MainTex_ST.xy + _MainTex_ST.zw;
+                output.color = _Color;
 
                 return output;
             }
@@ -81,7 +109,7 @@ Shader "Test/ShaderFlocking"
                 const half3 ambient = SampleSH(i.normalWS);
                 color.rgb *= diffuse + ambient;
 
-                return color;
+                return i.color;
             }
             ENDHLSL
         }

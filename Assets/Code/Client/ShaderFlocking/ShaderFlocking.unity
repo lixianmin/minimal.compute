@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18018535, g: 0.22559482, b: 0.30677685, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -173,11 +173,13 @@ MonoBehaviour:
   boidSpeed: 6
   neighbourDistance: 2
   boidSpeedVariation: 0.9
-  boidPrefab: {fileID: 5203919481050334109, guid: 6162ad78227b64a999f512c41ed2c247,
+  boidPrefab: {fileID: 5203919481050334109, guid: a9668dc0102a5c849afe46da324d2be2,
     type: 3}
   boidsCount: 5000
   spawnRadius: 2
   target: {fileID: 204301668}
+  boidMesh: {fileID: 4300000, guid: 98744b4f4158df441af5841eb9e98dbd, type: 3}
+  boidMaterial: {fileID: 2100000, guid: 427d2337005f4b844ab03b5b1dc4c316, type: 2}
 --- !u!1 &1349120633
 GameObject:
   m_ObjectHideFlags: 0
