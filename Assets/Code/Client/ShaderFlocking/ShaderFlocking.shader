@@ -63,8 +63,8 @@ Shader "Test/ShaderFlocking"
             StructuredBuffer<Boid> boids_buffer;
 
             CBUFFER_START(UnityPerMaterial)
-                float4 _Color;
-                float4 _MainTex_ST;
+            float4 _Color;
+            float4 _MainTex_ST;
             CBUFFER_END
 
             sampler2D _MainTex;
@@ -82,17 +82,27 @@ Shader "Test/ShaderFlocking"
                 );
             }
 
+            float3 transform_object_to_world_dir(float4x4 object_to_world, float3 dirOS, bool doNormalize = true)
+            {
+                float3 dirWS = mul((float3x3)object_to_world, dirOS);
+                if (doNormalize)
+                    return SafeNormalize(dirWS);
+
+                return dirWS;
+            }
+
             v2f vert(appdata_custom input)
             {
-                v2f output;
-
+                // 计算positionWS
                 const Boid boid = boids_buffer[input.instance_id];
                 const float3 up = float3(0, 1, 0);
                 const float4x4 object_to_world = create_trs_matrix(boid.position, boid.direction, up);
                 const float3 positionWS = mul(object_to_world, input.vertex);
 
+                // 计算output
+                v2f output;
                 output.positionCS = TransformWorldToHClip(positionWS);
-                output.normalWS = TransformObjectToWorldDir(input.normal);
+                output.normalWS = transform_object_to_world_dir(object_to_world, input.normal);
                 output.uv0 = _MainTex_ST.xy + _MainTex_ST.zw;
                 output.color = _Color;
 
