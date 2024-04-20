@@ -27,32 +27,21 @@ float4x4 create_trs_matrix(float3 pos, float3 dir, float3 up)
     );
 }
 
-float3 transform_object_to_world_dir(float4x4 object_to_world, float3 dirOS, bool doNormalize = true)
-{
-    float3 dirWS = mul((float3x3)object_to_world, dirOS);
-    if (doNormalize)
-        return SafeNormalize(dirWS);
-
-    return dirWS;
-}
-
-
 StructuredBuffer<Boid> boids_buffer;
 
-float3 GetVertexPosition(int instance_id, float4 vertex)
+float3 GetVertexPosition(const int instance_id, float4 vertex)
 {
     // 计算positionWS
     const Boid boid = boids_buffer[instance_id];
     const float3 up = float3(0, 1, 0);
     const float4x4 object_to_world = create_trs_matrix(boid.position, boid.direction, up);
-    const float3 positionWS = mul(object_to_world, vertex);
 
-    return positionWS;
-}
+    // unity_ObjectToWorld可以改, 但不需要修改
+    // unity_ObjectToWorld = object_to_world;
 
-float4 GetRedColor(float3 input)
-{
-    return float4(1, 0, 0, 1);
+    // 这个next_vertex_position相当于直接是vertex数据输入到shader的Vertex Position中
+    const float3 next_vertex_position = mul(object_to_world, vertex);
+    return next_vertex_position;
 }
 
 #endif
