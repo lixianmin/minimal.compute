@@ -6,7 +6,6 @@ Shader "TestLIt"
 	{
 		[HideInInspector] _AlphaCutoff("Alpha Cutoff ", Range(0, 1)) = 0.5
 		[HideInInspector] _EmissionColor("Emission Color", Color) = (1,1,1,1)
-		[HDR]_TintColor("TintColor", Color) = (1,1,1,1)
 
 
 		//_TransmissionShadow( "Transmission Shadow", Range( 0, 1 ) ) = 0.5
@@ -180,6 +179,7 @@ Shader "TestLIt"
 			HLSLPROGRAM
 
 			#define _NORMAL_DROPOFF_TS 1
+			#pragma multi_compile_instancing
 			#pragma instancing_options renderinglayer
 			#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 			#pragma multi_compile_fog
@@ -241,7 +241,6 @@ Shader "TestLIt"
 
 			#include "TestLitLib.hlsl"
 			#define ASE_NEEDS_VERT_POSITION
-			#pragma multi_compile_instancing
 			#define UNITY_PROCEDURAL_INSTANCING_ENABLED
 			#pragma instancing_options procedural:setup_instance
 
@@ -317,10 +316,7 @@ Shader "TestLIt"
 				int _PassValue;
 			#endif
 
-			UNITY_INSTANCING_BUFFER_START(TestLIt)
-				UNITY_DEFINE_INSTANCED_PROP(float4, _TintColor)
-			UNITY_INSTANCING_BUFFER_END(TestLIt)
-
+			
 
 			
 			VertexOutput VertexFunction( VertexInput v  )
@@ -533,10 +529,9 @@ Shader "TestLIt"
 
 				WorldViewDirection = SafeNormalize( WorldViewDirection );
 
-				float4 _TintColor_Instance = UNITY_ACCESS_INSTANCED_PROP(TestLIt,_TintColor);
 				
 
-				float3 BaseColor = _TintColor_Instance.rgb;
+				float3 BaseColor = float3(0.5, 0.5, 0.5);
 				float3 Normal = float3(0, 0, 1);
 				float3 Emission = 0;
 				float3 Specular = 0.5;
@@ -885,9 +880,7 @@ Shader "TestLIt"
 				int _PassValue;
 			#endif
 
-			UNITY_INSTANCING_BUFFER_START(TestLIt)
-			UNITY_INSTANCING_BUFFER_END(TestLIt)
-
+			
 
 			
 			float3 _LightDirection;
@@ -1200,9 +1193,7 @@ Shader "TestLIt"
 				int _PassValue;
 			#endif
 
-			UNITY_INSTANCING_BUFFER_START(TestLIt)
-			UNITY_INSTANCING_BUFFER_END(TestLIt)
-
+			
 
 			
 			VertexOutput VertexFunction( VertexInput v  )
@@ -1418,7 +1409,6 @@ Shader "TestLIt"
 
 			#include "TestLitLib.hlsl"
 			#define ASE_NEEDS_VERT_POSITION
-			#pragma multi_compile_instancing
 			#define UNITY_PROCEDURAL_INSTANCING_ENABLED
 			#pragma instancing_options procedural:setup_instance
 
@@ -1483,10 +1473,7 @@ Shader "TestLIt"
 				int _PassValue;
 			#endif
 
-			UNITY_INSTANCING_BUFFER_START(TestLIt)
-				UNITY_DEFINE_INSTANCED_PROP(float4, _TintColor)
-			UNITY_INSTANCING_BUFFER_END(TestLIt)
-
+			
 
 			
 			VertexOutput VertexFunction( VertexInput v  )
@@ -1654,10 +1641,9 @@ Shader "TestLIt"
 					#endif
 				#endif
 
-				float4 _TintColor_Instance = UNITY_ACCESS_INSTANCED_PROP(TestLIt,_TintColor);
 				
 
-				float3 BaseColor = _TintColor_Instance.rgb;
+				float3 BaseColor = float3(0.5, 0.5, 0.5);
 				float3 Emission = 0;
 				float Alpha = 1;
 				float AlphaClipThreshold = 0.5;
@@ -1716,7 +1702,6 @@ Shader "TestLIt"
 
 			#include "TestLitLib.hlsl"
 			#define ASE_NEEDS_VERT_POSITION
-			#pragma multi_compile_instancing
 			#define UNITY_PROCEDURAL_INSTANCING_ENABLED
 			#pragma instancing_options procedural:setup_instance
 
@@ -1774,10 +1759,7 @@ Shader "TestLIt"
 				int _PassValue;
 			#endif
 
-			UNITY_INSTANCING_BUFFER_START(TestLIt)
-				UNITY_DEFINE_INSTANCED_PROP(float4, _TintColor)
-			UNITY_INSTANCING_BUFFER_END(TestLIt)
-
+			
 
 			
 			VertexOutput VertexFunction( VertexInput v  )
@@ -1925,10 +1907,9 @@ Shader "TestLIt"
 					#endif
 				#endif
 
-				float4 _TintColor_Instance = UNITY_ACCESS_INSTANCED_PROP(TestLIt,_TintColor);
 				
 
-				float3 BaseColor = _TintColor_Instance.rgb;
+				float3 BaseColor = float3(0.5, 0.5, 0.5);
 				float Alpha = 1;
 				float AlphaClipThreshold = 0.5;
 
@@ -2056,9 +2037,7 @@ Shader "TestLIt"
 				int _PassValue;
 			#endif
 
-			UNITY_INSTANCING_BUFFER_START(TestLIt)
-			UNITY_INSTANCING_BUFFER_END(TestLIt)
-
+			
 
 			
 			VertexOutput VertexFunction( VertexInput v  )
@@ -2368,9 +2347,7 @@ Shader "TestLIt"
 				int _PassValue;
 			#endif
 
-			UNITY_INSTANCING_BUFFER_START(TestLIt)
-			UNITY_INSTANCING_BUFFER_END(TestLIt)
-
+			
 
 			
 			struct SurfaceDescription
@@ -2618,9 +2595,7 @@ Shader "TestLIt"
 				int _PassValue;
 			#endif
 
-			UNITY_INSTANCING_BUFFER_START(TestLIt)
-			UNITY_INSTANCING_BUFFER_END(TestLIt)
-
+			
 
 			
 			struct SurfaceDescription
@@ -2798,13 +2773,11 @@ Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;64;316.984,-227.3392;Float;
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;65;316.984,-227.3392;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;SceneSelectionPass;0;8;SceneSelectionPass;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;2;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=SceneSelectionPass;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;66;316.984,-227.3392;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;ScenePickingPass;0;9;ScenePickingPass;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=Picking;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;58;317.984,-227.3392;Float;False;True;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;TestLIt;94348b07e5e8bab40bd6c8a1e3df54cd;True;Forward;0;1;Forward;21;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;5;d3d11;glcore;gles3;metal;vulkan;0;False;True;1;1;False;;0;False;;1;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForwardOnly;False;False;3;Include;;False;;Native;False;0;0;;Define;UNITY_PROCEDURAL_INSTANCING_ENABLED;False;;Custom;False;0;0;;Pragma;instancing_options procedural:setup_instance;False;;Custom;False;0;0;;;0;0;Standard;40;Workflow;1;0;Surface;0;0;  Refraction Model;0;0;  Blend;0;0;Two Sided;1;0;Fragment Normal Space,InvertActionOnDeselection;0;0;Forward Only;1;638491994872716418;Transmission;0;0;  Transmission Shadow;0.5,False,;0;Translucency;0;0;  Translucency Strength;1,False,;0;  Normal Distortion;0.5,False,;0;  Scattering;2,False,;0;  Direct;0.9,False,;0;  Ambient;0.1,False,;0;  Shadow;0.5,False,;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;GPU Instancing;1;0;LOD CrossFade;1;0;Built-in Fog;1;0;_FinalColorxAlpha;0;0;Meta Pass;1;0;Override Baked GI;0;0;Extra Pre Pass;0;0;DOTS Instancing;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Write Depth;0;0;  Early Z;0;0;Vertex Position,InvertActionOnDeselection;0;638491810158182717;Debug Display;0;0;Clear Coat;0;0;0;10;False;True;True;True;True;True;True;False;True;True;False;;False;0
+Node;AmplifyShaderEditor.InstanceIdNode;36;-665.8088,-216.8748;Inherit;False;False;0;1;INT;0
 Node;AmplifyShaderEditor.PosVertexDataNode;38;-655.8088,-31.87512;Inherit;False;1;0;5;FLOAT4;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.InstanceIdNode;36;-621.8088,-200.8748;Inherit;False;False;0;1;INT;0
-Node;AmplifyShaderEditor.ColorNode;69;-426.0259,-381.4084;Inherit;False;InstancedProperty;_TintColor;TintColor;0;1;[HDR];Fetch;True;0;0;0;False;0;False;1,1,1,1;0,0,0,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.CustomExpressionNode;37;-358.8088,-50.87469;Inherit;False; ;4;File;2;True;instance_id;INT;0;In;;Inherit;False;True;vertex;FLOAT4;0,0,0,0;In;;Inherit;False;GetBoidVertex;False;False;0;4795cc8dfcb64f7ebd73e10559a495f5;False;2;0;INT;0;False;1;FLOAT4;0,0,0,0;False;1;FLOAT4;0
-WireConnection;58;0;69;0
+Node;AmplifyShaderEditor.CustomExpressionNode;37;-342.8088,-121.8747;Inherit;False; ;4;File;2;True;instance_id;INT;0;In;;Inherit;False;True;vertex;FLOAT4;0,0,0,0;In;;Inherit;False;GetBoidVertex;False;False;0;4795cc8dfcb64f7ebd73e10559a495f5;False;2;0;INT;0;False;1;FLOAT4;0,0,0,0;False;1;FLOAT4;0
 WireConnection;58;8;37;0
 WireConnection;37;0;36;0
 WireConnection;37;1;38;0
 ASEEND*/
-//CHKSM=BC0E6B04045B5958C1B39365C5D13693D0FD6A08
+//CHKSM=B5B63AF4AB56E28866ECE937B7A2CD872492C2BA
