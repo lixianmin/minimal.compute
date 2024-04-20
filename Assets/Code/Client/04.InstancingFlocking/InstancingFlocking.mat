@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: InstancingFlocking
-  m_Shader: {fileID: 4800000, guid: 9ef8381a6ef8f3e418eee5cb48d170da, type: 3}
+  m_Shader: {fileID: 4800000, guid: 5b54c43ca13fa10469e1aada95f31068, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
