@@ -29,7 +29,7 @@ float4x4 create_trs_matrix(float3 pos, float3 dir, float3 up)
 
 StructuredBuffer<Boid> boids_buffer;
 
-float4 GetVertexPosition(const int instance_id, float4 vertex)
+float4 GetBoidVertex(const int instance_id, float4 vertex)
 {
     // 计算positionWS
     const Boid boid = boids_buffer[instance_id];
@@ -41,7 +41,19 @@ float4 GetVertexPosition(const int instance_id, float4 vertex)
 
     // 这个next_vertex_position相当于直接是vertex数据输入到shader的Vertex Position中
     const float4 next_vertex_position = mul(object_to_world, vertex);
-    return next_vertex_position;
+    return vertex;
+}
+
+void setup_instance()
+{
+    #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+    
+    const Boid boid = boids_buffer[unity_InstanceID];
+    const float3 up = float3(0, 1, 0);
+    const float4x4 object_to_world = create_trs_matrix(boid.position, boid.direction, up);
+    unity_ObjectToWorld = object_to_world;
+    
+    #endif
 }
 
 #endif
