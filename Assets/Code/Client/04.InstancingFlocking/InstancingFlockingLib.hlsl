@@ -1,4 +1,20 @@
-﻿#ifndef XML_INSTANCING_FLOCKING_LIB
+﻿/********************************************************************
+created:    2024-04-20
+author:     lixianmin
+
+https://www.awesometech.no/index.php/guide-adding-instanced-indirect-support-to-shaders/
+https://wiki.gurbu.com/index.php?title=GPU_Instancer:FAQ#Amplify_Shader_Editor_directives
+
+ASE -> Output Node -> Pass -> Additional Directives -> 加入以下三行代码:
+
+    #include "Assets/Code/Client/04.InstancingFlocking/InstancingFlockingLib.hlsl"
+    #pragma instancing_options procedural:setup_instancing_flock
+    #define UNITY_PROCEDURAL_INSTANCING_ENABLED
+
+Copyright (C) - All Rights Reserved
+*********************************************************************/
+
+#ifndef XML_INSTANCING_FLOCKING_LIB
 #define XML_INSTANCING_FLOCKING_LIB
 
 struct Bounds
