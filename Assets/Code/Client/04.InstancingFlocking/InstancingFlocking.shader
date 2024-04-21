@@ -184,7 +184,8 @@ Shader "Test/InstancingFlocking"
 			#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 			#pragma multi_compile_fog
 			#define ASE_FOG 1
-			#define ASE_SRP_VERSION 140008
+			#define ASE_ABSOLUTE_VERTEX_POS 1
+			#define ASE_SRP_VERSION 140009
 
 
 			#pragma shader_feature_local _RECEIVE_SHADOWS_OFF
@@ -197,9 +198,9 @@ Shader "Test/InstancingFlocking"
 			#pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
 			#pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
 			
-			#pragma multi_compile_fragment _ _SHADOWS_SOFT
-		
 			
+			#pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+		
 			#pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 			#pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 			#pragma multi_compile_fragment _ _LIGHT_LAYERS
@@ -238,9 +239,9 @@ Shader "Test/InstancingFlocking"
 				#define ENABLE_TERRAIN_PERPIXEL_NORMAL
 			#endif
 
-			#include "Assets/Code/Client/04.InstancingFlocking/InstancingFlockingLib.hlsl"
-			#pragma instancing_options procedural:setup_instancing_flock
-			#define UNITY_PROCEDURAL_INSTANCING_ENABLED
+			#include "InstancingFlockingLib.hlsl"
+			#define ASE_NEEDS_VERT_POSITION
+			#pragma instancing_options procedural:setup_instancing_flocking
 
 
 			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE) && (SHADER_TARGET >= 45)
@@ -324,6 +325,8 @@ Shader "Test/InstancingFlocking"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				float4 vertex11 = v.positionOS;
+				float4 localget_vertex_position11 = get_vertex_position( vertex11 );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -332,7 +335,7 @@ Shader "Test/InstancingFlocking"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = defaultVertexValue;
+				float3 vertexValue = localget_vertex_position11.xyz;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -779,7 +782,8 @@ Shader "Test/InstancingFlocking"
 			#pragma multi_compile_instancing
 			#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 			#define ASE_FOG 1
-			#define ASE_SRP_VERSION 140008
+			#define ASE_ABSOLUTE_VERTEX_POS 1
+			#define ASE_SRP_VERSION 140009
 
 
 			#pragma vertex vert
@@ -802,9 +806,9 @@ Shader "Test/InstancingFlocking"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			#include "Assets/Code/Client/04.InstancingFlocking/InstancingFlockingLib.hlsl"
-			#pragma instancing_options procedural:setup_instancing_flock
-			#define UNITY_PROCEDURAL_INSTANCING_ENABLED
+			#include "InstancingFlockingLib.hlsl"
+			#define ASE_NEEDS_VERT_POSITION
+			#pragma instancing_options procedural:setup_instancing_flocking
 
 
 			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE) && (SHADER_TARGET >= 45)
@@ -882,6 +886,8 @@ Shader "Test/InstancingFlocking"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO( o );
 
+				float4 vertex11 = v.positionOS;
+				float4 localget_vertex_position11 = get_vertex_position( vertex11 );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -890,7 +896,7 @@ Shader "Test/InstancingFlocking"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = defaultVertexValue;
+				float3 vertexValue = localget_vertex_position11.xyz;
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
 				#else
@@ -1085,7 +1091,8 @@ Shader "Test/InstancingFlocking"
 			#pragma multi_compile_instancing
 			#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 			#define ASE_FOG 1
-			#define ASE_SRP_VERSION 140008
+			#define ASE_ABSOLUTE_VERTEX_POS 1
+			#define ASE_SRP_VERSION 140009
 
 
 			#pragma vertex vert
@@ -1106,9 +1113,9 @@ Shader "Test/InstancingFlocking"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			#include "Assets/Code/Client/04.InstancingFlocking/InstancingFlockingLib.hlsl"
-			#pragma instancing_options procedural:setup_instancing_flock
-			#define UNITY_PROCEDURAL_INSTANCING_ENABLED
+			#include "InstancingFlockingLib.hlsl"
+			#define ASE_NEEDS_VERT_POSITION
+			#pragma instancing_options procedural:setup_instancing_flocking
 
 
 			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE) && (SHADER_TARGET >= 45)
@@ -1183,6 +1190,8 @@ Shader "Test/InstancingFlocking"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				float4 vertex11 = v.positionOS;
+				float4 localget_vertex_position11 = get_vertex_position( vertex11 );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -1191,7 +1200,7 @@ Shader "Test/InstancingFlocking"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = defaultVertexValue;
+				float3 vertexValue = localget_vertex_position11.xyz;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -1359,7 +1368,8 @@ Shader "Test/InstancingFlocking"
 
 			#define _NORMAL_DROPOFF_TS 1
 			#define ASE_FOG 1
-			#define ASE_SRP_VERSION 140008
+			#define ASE_ABSOLUTE_VERTEX_POS 1
+			#define ASE_SRP_VERSION 140009
 
 
 			#pragma vertex vert
@@ -1379,9 +1389,9 @@ Shader "Test/InstancingFlocking"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
-			#include "Assets/Code/Client/04.InstancingFlocking/InstancingFlockingLib.hlsl"
-			#pragma instancing_options procedural:setup_instancing_flock
-			#define UNITY_PROCEDURAL_INSTANCING_ENABLED
+			#include "InstancingFlockingLib.hlsl"
+			#define ASE_NEEDS_VERT_POSITION
+			#pragma instancing_options procedural:setup_instancing_flocking
 
 
 			struct VertexInput
@@ -1454,6 +1464,8 @@ Shader "Test/InstancingFlocking"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				float4 vertex11 = v.positionOS;
+				float4 localget_vertex_position11 = get_vertex_position( vertex11 );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -1462,7 +1474,7 @@ Shader "Test/InstancingFlocking"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = defaultVertexValue;
+				float3 vertexValue = localget_vertex_position11.xyz;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -1646,7 +1658,8 @@ Shader "Test/InstancingFlocking"
 
 			#define _NORMAL_DROPOFF_TS 1
 			#define ASE_FOG 1
-			#define ASE_SRP_VERSION 140008
+			#define ASE_ABSOLUTE_VERTEX_POS 1
+			#define ASE_SRP_VERSION 140009
 
 
 			#pragma vertex vert
@@ -1663,9 +1676,9 @@ Shader "Test/InstancingFlocking"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
-			#include "Assets/Code/Client/04.InstancingFlocking/InstancingFlockingLib.hlsl"
-			#pragma instancing_options procedural:setup_instancing_flock
-			#define UNITY_PROCEDURAL_INSTANCING_ENABLED
+			#include "InstancingFlockingLib.hlsl"
+			#define ASE_NEEDS_VERT_POSITION
+			#pragma instancing_options procedural:setup_instancing_flocking
 
 
 			struct VertexInput
@@ -1731,6 +1744,8 @@ Shader "Test/InstancingFlocking"
 				UNITY_TRANSFER_INSTANCE_ID( v, o );
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO( o );
 
+				float4 vertex11 = v.positionOS;
+				float4 localget_vertex_position11 = get_vertex_position( vertex11 );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -1739,7 +1754,7 @@ Shader "Test/InstancingFlocking"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = defaultVertexValue;
+				float3 vertexValue = localget_vertex_position11.xyz;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -1897,7 +1912,8 @@ Shader "Test/InstancingFlocking"
 			#pragma multi_compile_instancing
 			#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 			#define ASE_FOG 1
-			#define ASE_SRP_VERSION 140008
+			#define ASE_ABSOLUTE_VERTEX_POS 1
+			#define ASE_SRP_VERSION 140009
 
 
 			#pragma vertex vert
@@ -1920,9 +1936,9 @@ Shader "Test/InstancingFlocking"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			#include "Assets/Code/Client/04.InstancingFlocking/InstancingFlockingLib.hlsl"
-			#pragma instancing_options procedural:setup_instancing_flock
-			#define UNITY_PROCEDURAL_INSTANCING_ENABLED
+			#include "InstancingFlockingLib.hlsl"
+			#define ASE_NEEDS_VERT_POSITION
+			#pragma instancing_options procedural:setup_instancing_flocking
 
 
 			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE) && (SHADER_TARGET >= 45)
@@ -2000,6 +2016,8 @@ Shader "Test/InstancingFlocking"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				float4 vertex11 = v.positionOS;
+				float4 localget_vertex_position11 = get_vertex_position( vertex11 );
 				
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					float3 defaultVertexValue = v.positionOS.xyz;
@@ -2007,7 +2025,7 @@ Shader "Test/InstancingFlocking"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = defaultVertexValue;
+				float3 vertexValue = localget_vertex_position11.xyz;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -2218,7 +2236,8 @@ Shader "Test/InstancingFlocking"
 
 			#define _NORMAL_DROPOFF_TS 1
 			#define ASE_FOG 1
-			#define ASE_SRP_VERSION 140008
+			#define ASE_ABSOLUTE_VERTEX_POS 1
+			#define ASE_SRP_VERSION 140009
 
 
 			#pragma vertex vert
@@ -2239,9 +2258,9 @@ Shader "Test/InstancingFlocking"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
-			#include "Assets/Code/Client/04.InstancingFlocking/InstancingFlockingLib.hlsl"
-			#pragma instancing_options procedural:setup_instancing_flock
-			#define UNITY_PROCEDURAL_INSTANCING_ENABLED
+			#include "InstancingFlockingLib.hlsl"
+			#define ASE_NEEDS_VERT_POSITION
+			#pragma instancing_options procedural:setup_instancing_flocking
 
 
 			struct VertexInput
@@ -2309,6 +2328,8 @@ Shader "Test/InstancingFlocking"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				float4 vertex11 = v.positionOS;
+				float4 localget_vertex_position11 = get_vertex_position( vertex11 );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -2317,7 +2338,7 @@ Shader "Test/InstancingFlocking"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = defaultVertexValue;
+				float3 vertexValue = localget_vertex_position11.xyz;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -2457,7 +2478,8 @@ Shader "Test/InstancingFlocking"
 
 			#define _NORMAL_DROPOFF_TS 1
 			#define ASE_FOG 1
-			#define ASE_SRP_VERSION 140008
+			#define ASE_ABSOLUTE_VERTEX_POS 1
+			#define ASE_SRP_VERSION 140009
 
 
 			#pragma vertex vert
@@ -2478,9 +2500,9 @@ Shader "Test/InstancingFlocking"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
-			#include "Assets/Code/Client/04.InstancingFlocking/InstancingFlockingLib.hlsl"
-			#pragma instancing_options procedural:setup_instancing_flock
-			#define UNITY_PROCEDURAL_INSTANCING_ENABLED
+			#include "InstancingFlockingLib.hlsl"
+			#define ASE_NEEDS_VERT_POSITION
+			#pragma instancing_options procedural:setup_instancing_flocking
 
 
 			struct VertexInput
@@ -2548,6 +2570,8 @@ Shader "Test/InstancingFlocking"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				float4 vertex11 = v.positionOS;
+				float4 localget_vertex_position11 = get_vertex_position( vertex11 );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -2556,7 +2580,7 @@ Shader "Test/InstancingFlocking"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = defaultVertexValue;
+				float3 vertexValue = localget_vertex_position11.xyz;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -2692,7 +2716,6 @@ Shader "Test/InstancingFlocking"
 /*ASEBEGIN
 Version=19202
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;1;231,-214;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;ExtraPrePass;0;0;ExtraPrePass;5;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;True;1;1;False;;0;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;0;False;False;0;;0;0;Standard;0;False;0
-Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;2;231,-214;Float;False;True;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;Test/InstancingFlocking;94348b07e5e8bab40bd6c8a1e3df54cd;True;Forward;0;1;Forward;21;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;True;1;1;False;;0;False;;1;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForwardOnly;False;False;4;Include;;False;;Native;False;0;0;;Include;;True;b4327c8ae12d4f17a5a699c2dcb662db;Custom;False;0;0;;Pragma;instancing_options procedural:setup_instancing_flock;False;;Custom;False;0;0;;Define;UNITY_PROCEDURAL_INSTANCING_ENABLED;False;;Custom;False;0;0;;;0;0;Standard;40;Workflow;1;0;Surface;0;0;  Refraction Model;0;0;  Blend;0;0;Two Sided;1;0;Fragment Normal Space,InvertActionOnDeselection;0;0;Forward Only;1;638492021451900574;Transmission;0;0;  Transmission Shadow;0.5,False,;0;Translucency;0;0;  Translucency Strength;1,False,;0;  Normal Distortion;0.5,False,;0;  Scattering;2,False,;0;  Direct;0.9,False,;0;  Ambient;0.1,False,;0;  Shadow;0.5,False,;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;GPU Instancing;1;0;LOD CrossFade;1;0;Built-in Fog;1;0;_FinalColorxAlpha;0;0;Meta Pass;1;0;Override Baked GI;0;0;Extra Pre Pass;0;0;DOTS Instancing;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Write Depth;0;0;  Early Z;0;0;Vertex Position,InvertActionOnDeselection;1;0;Debug Display;0;0;Clear Coat;0;0;0;10;False;True;True;True;True;True;True;False;True;True;False;;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;3;231,-214;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;ShadowCaster;0;2;ShadowCaster;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;True;False;False;False;False;0;False;;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;False;True;1;LightMode=ShadowCaster;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;4;231,-214;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;DepthOnly;0;3;DepthOnly;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;True;True;False;False;False;0;False;;False;False;False;False;False;False;False;False;False;True;1;False;;False;False;True;1;LightMode=DepthOnly;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;5;231,-214;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;Meta;0;4;Meta;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;2;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=Meta;False;False;0;;0;0;Standard;0;False;0
@@ -2701,5 +2724,10 @@ Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;7;231,-214;Float;False;Fals
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;8;231,-214;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;GBuffer;0;7;GBuffer;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;True;1;1;False;;0;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalGBuffer;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;9;231,-214;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;SceneSelectionPass;0;8;SceneSelectionPass;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;2;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=SceneSelectionPass;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;10;231,-214;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;ScenePickingPass;0;9;ScenePickingPass;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=Picking;False;False;0;;0;0;Standard;0;False;0
+Node;AmplifyShaderEditor.CustomExpressionNode;11;-94.5,-120.5;Inherit;False; ;4;File;1;True;vertex;FLOAT4;0,0,0,0;In;;Inherit;False;get_vertex_position;False;False;0;b4327c8ae12d4f17a5a699c2dcb662db;False;1;0;FLOAT4;0,0,0,0;False;1;FLOAT4;0
+Node;AmplifyShaderEditor.PosVertexDataNode;12;-426.5,-139.5;Inherit;False;1;0;5;FLOAT4;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;2;564,-317;Float;False;True;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;Test/InstancingFlocking;94348b07e5e8bab40bd6c8a1e3df54cd;True;Forward;0;1;Forward;21;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;True;1;1;False;;0;False;;1;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForwardOnly;False;False;2;Include;;False;;Native;False;0;0;;Pragma;instancing_options procedural:setup_instancing_flocking;False;;Custom;False;0;0;;;0;0;Standard;40;Workflow;1;0;Surface;0;0;  Refraction Model;0;0;  Blend;0;0;Two Sided;1;0;Fragment Normal Space,InvertActionOnDeselection;0;0;Forward Only;1;638492021451900574;Transmission;0;0;  Transmission Shadow;0.5,False,;0;Translucency;0;0;  Translucency Strength;1,False,;0;  Normal Distortion;0.5,False,;0;  Scattering;2,False,;0;  Direct;0.9,False,;0;  Ambient;0.1,False,;0;  Shadow;0.5,False,;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;GPU Instancing;1;0;LOD CrossFade;1;0;Built-in Fog;1;0;_FinalColorxAlpha;0;0;Meta Pass;1;0;Override Baked GI;0;0;Extra Pre Pass;0;0;DOTS Instancing;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Write Depth;0;0;  Early Z;0;0;Vertex Position,InvertActionOnDeselection;0;638492578415783850;Debug Display;0;0;Clear Coat;0;0;0;10;False;True;True;True;True;True;True;False;True;True;False;;False;0
+WireConnection;11;0;12;0
+WireConnection;2;8;11;0
 ASEEND*/
-//CHKSM=D1BAA1F168A76114068863B5ABDB8262193A06A7
+//CHKSM=EC87AA7E9BED068E5F17D1819B83F40DE3D2375A
